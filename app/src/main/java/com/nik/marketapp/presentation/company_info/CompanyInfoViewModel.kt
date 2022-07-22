@@ -26,7 +26,7 @@ class CompanyInfoViewModel @Inject constructor(
             val symbol = savedStateHandle.get<String>("symbol") ?: return@launch
             state = state.copy(isLoading = true)
             val companyInfoResult = async { repository.getCompanyInfo(symbol) }
-            val intradayInfoResult = async{ repository.getIntradayInfo(symbol) }
+            val intradayInfoResult = async { repository.getIntradayInfo(symbol) }
 
             when(val result = companyInfoResult.await()){
                 is Resource.Success -> {
