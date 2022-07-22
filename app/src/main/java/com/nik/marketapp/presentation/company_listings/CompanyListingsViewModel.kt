@@ -8,24 +8,25 @@ import androidx.lifecycle.viewModelScope
 import com.nik.marketapp.domain.repository.StockRepository
 import com.nik.marketapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltViewModel
 class CompanyListingsViewModel @Inject constructor(
     private val repository: StockRepository
-): ViewModel() {
+) : ViewModel() {
 
     var state by mutableStateOf(CompanyListingsState())
         private set
 
     private var searchJob: Job? = null
 
-    fun onEvent(event: CompanyListingsEvent){
-        when(event){
+    init {
+        getCompanyListings()
+    }
+
+    fun onEvent(event: CompanyListingsEvent) {
+        when (event) {
             is CompanyListingsEvent.Refresh -> {
                 getCompanyListings(fetchFromRemote = true)
             }
@@ -43,21 +44,27 @@ class CompanyListingsViewModel @Inject constructor(
     private fun getCompanyListings(
         query: String = state.searchQuery.lowercase(),
         fetchFromRemote: Boolean = false
-    ){
-        viewModelScope.launch {
-            repository.getCompanyListings(fetchFromRemote,query)
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository
+                .getCompanyListings(fetchFromRemote, query)
                 .collect { result ->
-                    when(result){
+                    when (result) {
                         is Resource.Success -> {
                             result.data?.let { listings ->
-                                state = state.copy(
-                                    companies = listings
-                                )
+                                state = withContext(Dispatchers.Main) {
+                                    state.copy(
+                                        companies = listings
+                                    )
+                                }
                             }
                         }
                         is Resource.Error -> Unit
                         is Resource.Loading -> {
-                            state = state.copy(isLoading = result.isLoading)
+                            state =
+                                withContext(Dispatchers.Main) {
+                                    state.copy(isLoading = result.isLoading)
+                                }
                         }
                     }
                 }

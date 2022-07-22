@@ -12,7 +12,7 @@ interface StockApi {
     ) : ResponseBody
 
     companion object {
-        const val API_KEY = "MYVSPLCR1LLFXNBF"
-        const val BASE_URL = "https://alphavantage.com"
+        const val API_KEY = "G1USXWKX272RK4BP"
+        const val BASE_URL = "https://alphavantage.co"
     }
 }
